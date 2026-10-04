@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useState,
 } from "react";
@@ -11,7 +12,7 @@ import type {
 
 import {
   useWorkspace,
-} from "../workspaces/workspace.context";
+} from "../workspaces/workspace.hook";
 
 const ACTION_OPTIONS = [
   {
@@ -167,6 +168,8 @@ const ActivityPage = () => {
     isWorkspaceLoading,
   } = useWorkspace();
 
+  const workspaceId = workspace?.id;
+
   const [activities, setActivities] =
     useState<ActivityItem[]>([]);
 
@@ -191,11 +194,16 @@ const ActivityPage = () => {
   const [error, setError] =
     useState<string | null>(null);
 
-  const loadActivities = async (
+  const loadActivities = useCallback(async (
     cursor?: string,
     append = false,
   ) => {
-    if (!workspace?.id) {
+    if (!workspaceId) {
+      if (!append) {
+        setActivities([]);
+        setNextCursor(null);
+        setHasNextPage(false);
+      }
       setIsLoading(false);
       return;
     }
@@ -203,6 +211,9 @@ const ActivityPage = () => {
     if (append) {
       setIsLoadingMore(true);
     } else {
+      setActivities([]);
+      setNextCursor(null);
+      setHasNextPage(false);
       setIsLoading(true);
     }
 
@@ -211,7 +222,7 @@ const ActivityPage = () => {
     try {
       const response =
         await getActivities(
-          workspace.id,
+          workspaceId,
           {
             action:
               actionFilter || undefined,
@@ -257,25 +268,21 @@ const ActivityPage = () => {
       setIsLoading(false);
       setIsLoadingMore(false);
     }
-  };
-
-  useEffect(() => {
-    setActivities([]);
-    setNextCursor(null);
-    setHasNextPage(false);
-
-    void loadActivities();
   }, [
-    workspace?.id,
     actionFilter,
     entityTypeFilter,
+    workspaceId,
   ]);
 
-  const handleRefresh = () => {
-    setActivities([]);
-    setNextCursor(null);
-    setHasNextPage(false);
+  useEffect(() => {
+    const loadFilteredActivities = async () => {
+      await loadActivities();
+    };
 
+    void loadFilteredActivities();
+  }, [loadActivities]);
+
+  const handleRefresh = () => {
     void loadActivities();
   };
 

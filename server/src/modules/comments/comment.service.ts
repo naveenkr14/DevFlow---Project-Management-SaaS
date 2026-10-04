@@ -14,6 +14,10 @@ import type {
 } from "./comment.schema.js";
 
 import { createActivityService } from "../activities/activity.service.js";
+import {
+  assertCommentDeletionAllowed,
+  assertCommentUpdateAllowed,
+} from "./comment.authorization.js";
 
 export const createCommentService = async (
   issueId: string,
@@ -89,9 +93,16 @@ export const updateCommentService = async (
     throw new Error("COMMENT_NOT_FOUND");
   }
 
-  if (comment.authorId !== userId) {
-    throw new Error("COMMENT_EDIT_FORBIDDEN");
-  }
+  const membership = await findWorkspaceMembership(
+    comment.issue.project.workspaceId,
+    userId,
+  );
+
+  assertCommentUpdateAllowed({
+    commentAuthorId: comment.authorId,
+    userId,
+    hasWorkspaceMembership: Boolean(membership),
+  });
 
   const oldContent = comment.content;
 
@@ -126,9 +137,16 @@ export const deleteCommentService = async (
     throw new Error("COMMENT_NOT_FOUND");
   }
 
-  if (comment.authorId !== userId) {
-    throw new Error("COMMENT_DELETE_FORBIDDEN");
-  }
+  const membership = await findWorkspaceMembership(
+    comment.issue.project.workspaceId,
+    userId,
+  );
+
+  assertCommentDeletionAllowed({
+    commentAuthorId: comment.authorId,
+    userId,
+    hasWorkspaceMembership: Boolean(membership),
+  });
 
   const deletedComment = await deleteComment(
     commentId,

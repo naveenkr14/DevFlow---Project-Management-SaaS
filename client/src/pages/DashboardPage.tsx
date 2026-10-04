@@ -5,7 +5,7 @@ import { getWorkspaceDashboard } from "../dashboard/dashboard.api";
 import type {
   DashboardData,
 } from "../dashboard/dashboard.types";
-import { useWorkspace } from "../workspaces/workspace.context";
+import { useWorkspace } from "../workspaces/workspace.hook";
 
 const DashboardPage = () => {
   const {

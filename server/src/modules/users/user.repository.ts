@@ -1,4 +1,5 @@
 import { prisma } from "../../lib/prisma.js";
+import { publicUserSelect } from "./user.dto.js";
 
 export const findUserByEmail = async (email: string) => {
   return prisma.user.findUnique({
@@ -20,6 +21,7 @@ export const createUser = async (data: {
 
 export const findAllUsers = async () => {
   return prisma.user.findMany({
+    select: publicUserSelect,
     orderBy: {
       createdAt: "desc",
     },

@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "prisma generate && tsc",
+    "test": "tsx --test tests/security.test.ts tests/rate-limit.test.ts",
     "db:migrate:deploy": "prisma migrate deploy",
     "start": "node dist/server.js"
   },

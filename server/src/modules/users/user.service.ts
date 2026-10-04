@@ -3,6 +3,7 @@ import {
   findAllUsers,
   findUserByEmail,
 } from "./user.repository.js";
+import { toPublicUser } from "./user.dto.js";
 
 export const registerUser = async (data: {
   name: string;
@@ -19,5 +20,7 @@ export const registerUser = async (data: {
 };
 
 export const getUsers = async () => {
-  return findAllUsers();
+  const users = await findAllUsers();
+
+  return users.map(toPublicUser);
 };

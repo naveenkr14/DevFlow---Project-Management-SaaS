@@ -21,7 +21,7 @@ import type {
 
 import {
   useWorkspace,
-} from "../workspaces/workspace.context";
+} from "../workspaces/workspace.hook";
 
 const SearchPage = () => {
   const navigate = useNavigate();

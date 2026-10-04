@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { useWorkspace } from "../workspaces/workspace.context";
+import { useWorkspace } from "../workspaces/workspace.hook";
 
 const CreateWorkspacePage = () => {
   const navigate = useNavigate();

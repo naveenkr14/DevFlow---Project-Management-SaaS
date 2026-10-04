@@ -25,7 +25,7 @@ import SearchPage from "../pages/SearchPage";
 
 import {
   useWorkspace,
-} from "../workspaces/workspace.context";
+} from "../workspaces/workspace.hook";
 
 function NotFoundPage() {
   return (

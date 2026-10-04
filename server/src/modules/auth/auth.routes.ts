@@ -1,14 +1,26 @@
 import { Router } from "express";
 import { requireAuth } from "../../middleware/auth.js";
+import { env } from "../../config/env.js";
+import { createRateLimiter } from "../../middleware/rate-limit.js";
 import { validateBody } from "../../middleware/validate.js";
 import { login, logout, register } from "./auth.controller.js";
 import { loginSchema, registerSchema } from "./auth.schema.js";
 
 const router = Router();
 
-router.post("/register", validateBody(registerSchema), register);
+export const registerRateLimiter = createRateLimiter({
+  max: env.registerRateLimitMax,
+  windowMs: env.registerRateLimitWindowMs,
+});
 
-router.post("/login", validateBody(loginSchema), login);
+export const loginRateLimiter = createRateLimiter({
+  max: env.loginRateLimitMax,
+  windowMs: env.loginRateLimitWindowMs,
+});
+
+router.post("/register", registerRateLimiter, validateBody(registerSchema), register);
+
+router.post("/login", loginRateLimiter, validateBody(loginSchema), login);
 
 router.post("/logout", requireAuth, logout);
 

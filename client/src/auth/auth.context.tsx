@@ -1,7 +1,5 @@
 import {
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useState,
@@ -14,18 +12,7 @@ import {
 } from "./auth.api";
 
 import type { AuthUser } from "./auth.types";
-
-type AuthContextValue = {
-  user: AuthUser | null;
-  isLoading: boolean;
-  isAuthenticated: boolean;
-  refreshUser: () => Promise<void>;
-  logout: () => Promise<void>;
-};
-
-const AuthContext = createContext<AuthContextValue | undefined>(
-  undefined,
-);
+import { AuthContext } from "./auth.store";
 
 type AuthProviderProps = {
   children: ReactNode;
@@ -58,8 +45,29 @@ export const AuthProvider = ({
   }, []);
 
   useEffect(() => {
-    void refreshUser();
-  }, [refreshUser]);
+    let isMounted = true;
+
+    getCurrentUser()
+      .then((currentUser) => {
+        if (isMounted) {
+          setUser(currentUser);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setUser(null);
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -77,16 +85,4 @@ export const AuthProvider = ({
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-
-  if (!context) {
-    throw new Error(
-      "useAuth must be used inside an AuthProvider.",
-    );
-  }
-
-  return context;
 };

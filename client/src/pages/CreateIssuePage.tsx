@@ -20,7 +20,7 @@ import {
   type WorkspaceMember,
 } from "../workspaces/workspace.api";
 
-import { useWorkspace } from "../workspaces/workspace.context";
+import { useWorkspace } from "../workspaces/workspace.hook";
 
 const CreateIssuePage = () => {
   const navigate = useNavigate();

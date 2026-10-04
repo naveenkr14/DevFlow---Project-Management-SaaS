@@ -1,6 +1,5 @@
 import {
-  createContext,
-  useContext,
+  useCallback,
   useEffect,
   useMemo,
   useState,
@@ -8,7 +7,7 @@ import {
 } from "react";
 import { useLocation } from "react-router-dom";
 
-import { useAuth } from "../auth/auth.context";
+import { useAuth } from "../auth/auth.hook";
 
 import {
   createWorkspace,
@@ -18,26 +17,13 @@ import {
   type Workspace,
   type WorkspaceMembership,
 } from "./workspace.api";
+import { WorkspaceContext } from "./workspace.store";
 
 const CURRENT_WORKSPACE_KEY =
   "devflow_current_workspace_id";
 
 const WORKSPACE_PATH_PATTERN =
   /^\/app\/workspaces\/([^/]+)/;
-
-type WorkspaceContextValue = {
-  workspace: Workspace | null;
-  membership: WorkspaceMembership | null;
-  isWorkspaceLoading: boolean;
-  createNewWorkspace: (
-    input: CreateWorkspaceInput,
-  ) => Promise<void>;
-  clearWorkspace: () => void;
-};
-
-const WorkspaceContext = createContext<
-  WorkspaceContextValue | undefined
->(undefined);
 
 type WorkspaceProviderProps = {
   children: ReactNode;
@@ -62,19 +48,19 @@ export const WorkspaceProvider = ({
     useState(true);
 
   useEffect(() => {
-    if (isAuthLoading) {
-      setIsWorkspaceLoading(true);
-      return;
-    }
-
-    if (!isAuthenticated) {
-      setWorkspace(null);
-      setMembership(null);
-      setIsWorkspaceLoading(false);
-      return;
-    }
-
     const restoreWorkspace = async () => {
+      if (isAuthLoading) {
+        setIsWorkspaceLoading(true);
+        return;
+      }
+
+      if (!isAuthenticated) {
+        setWorkspace(null);
+        setMembership(null);
+        setIsWorkspaceLoading(false);
+        return;
+      }
+
       const workspacePathMatch =
         location.pathname.match(
           WORKSPACE_PATH_PATTERN,
@@ -137,7 +123,7 @@ export const WorkspaceProvider = ({
     location.pathname,
   ]);
 
-  const createNewWorkspace = async (
+  const createNewWorkspace = useCallback(async (
     input: CreateWorkspaceInput,
   ) => {
     const result = await createWorkspace(input);
@@ -149,16 +135,16 @@ export const WorkspaceProvider = ({
       CURRENT_WORKSPACE_KEY,
       result.workspace.id,
     );
-  };
+  }, []);
 
-  const clearWorkspace = () => {
+  const clearWorkspace = useCallback(() => {
     setWorkspace(null);
     setMembership(null);
 
     localStorage.removeItem(
       CURRENT_WORKSPACE_KEY,
     );
-  };
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -172,6 +158,8 @@ export const WorkspaceProvider = ({
       workspace,
       membership,
       isWorkspaceLoading,
+      createNewWorkspace,
+      clearWorkspace,
     ],
   );
 
@@ -180,16 +168,4 @@ export const WorkspaceProvider = ({
       {children}
     </WorkspaceContext.Provider>
   );
-};
-
-export const useWorkspace = () => {
-  const context = useContext(WorkspaceContext);
-
-  if (!context) {
-    throw new Error(
-      "useWorkspace must be used inside a WorkspaceProvider.",
-    );
-  }
-
-  return context;
 };

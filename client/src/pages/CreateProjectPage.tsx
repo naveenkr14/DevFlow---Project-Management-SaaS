@@ -4,7 +4,7 @@ import {
 } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-import { useWorkspace } from "../workspaces/workspace.context";
+import { useWorkspace } from "../workspaces/workspace.hook";
 import { createProject } from "../projects/project.api";
 
 const CreateProjectPage = () => {

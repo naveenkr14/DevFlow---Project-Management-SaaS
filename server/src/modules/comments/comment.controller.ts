@@ -8,6 +8,7 @@ import {
   getIssueCommentsService,
   updateCommentService,
 } from "./comment.service.js";
+import { getCommentAuthorizationError } from "./comment.errors.js";
 
 export const createCommentController = async (
   req: Request,
@@ -184,27 +185,13 @@ export const updateCommentController = async (
       return;
     }
 
-    if (error instanceof Error && error.message === "WORKSPACE_ACCESS_DENIED") {
-      res.status(403).json({
+    const authorizationError = getCommentAuthorizationError(error, "update");
+
+    if (authorizationError) {
+      res.status(authorizationError.status).json({
         success: false,
-        error: {
-          code: "WORKSPACE_ACCESS_DENIED",
-          message: "You do not have access to this comment.",
-        },
+        error: authorizationError.error,
       });
-
-      return;
-    }
-
-    if (error instanceof Error && error.message === "COMMENT_AUTHOR_ONLY") {
-      res.status(403).json({
-        success: false,
-        error: {
-          code: "COMMENT_AUTHOR_ONLY",
-          message: "Only the comment author can update this comment.",
-        },
-      });
-
       return;
     }
 
@@ -261,27 +248,13 @@ export const deleteCommentController = async (
       return;
     }
 
-    if (error instanceof Error && error.message === "WORKSPACE_ACCESS_DENIED") {
-      res.status(403).json({
+    const authorizationError = getCommentAuthorizationError(error, "delete");
+
+    if (authorizationError) {
+      res.status(authorizationError.status).json({
         success: false,
-        error: {
-          code: "WORKSPACE_ACCESS_DENIED",
-          message: "You do not have access to this comment.",
-        },
+        error: authorizationError.error,
       });
-
-      return;
-    }
-
-    if (error instanceof Error && error.message === "COMMENT_AUTHOR_ONLY") {
-      res.status(403).json({
-        success: false,
-        error: {
-          code: "COMMENT_AUTHOR_ONLY",
-          message: "Only the comment author can delete this comment.",
-        },
-      });
-
       return;
     }
 

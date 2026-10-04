@@ -1,7 +1,7 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 
-import { useAuth } from "../auth/auth.context";
-import { useWorkspace } from "../workspaces/workspace.context";
+import { useAuth } from "../auth/auth.hook";
+import { useWorkspace } from "../workspaces/workspace.hook";
 
 const AppLayout = () => {
   const navigate = useNavigate();

@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useState,
   type FormEvent,
@@ -113,7 +114,7 @@ const IssueDetailsPage = () => {
   const [labelError, setLabelError] =
     useState<string | null>(null);
 
-  const loadComments = async () => {
+  const loadComments = useCallback(async () => {
     if (!issueId) {
       setCommentError(
         "Issue ID is missing.",
@@ -141,9 +142,9 @@ const IssueDetailsPage = () => {
     } finally {
       setIsCommentsLoading(false);
     }
-  };
+  }, [issueId]);
 
-  const loadLabels = async (
+  const loadLabels = useCallback(async (
     currentIssue: Issue,
   ) => {
     if (!issueId) {
@@ -181,7 +182,7 @@ const IssueDetailsPage = () => {
     } finally {
       setIsLabelsLoading(false);
     }
-  };
+  }, [issueId]);
 
   useEffect(() => {
     const loadPageData = async () => {
@@ -219,7 +220,7 @@ const IssueDetailsPage = () => {
     };
 
     void loadPageData();
-  }, [issueId]);
+  }, [issueId, loadComments, loadLabels]);
 
   const handleStatusChange = async (
     newStatus: IssueStatus,

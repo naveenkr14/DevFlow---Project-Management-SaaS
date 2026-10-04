@@ -54,35 +54,35 @@ const ProjectLabelsPage = () => {
   const [error, setError] =
     useState<string | null>(null);
 
-  const loadLabels = async () => {
-    if (!projectId) {
-      setError("Project ID is missing.");
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const data =
-        await getProjectLabels(projectId);
-
-      setLabels(data);
-    } catch (error) {
-      if (error instanceof Error) {
-        setError(error.message);
-      } else {
-        setError(
-          "Unable to load labels.",
-        );
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const loadLabels = async () => {
+      if (!projectId) {
+        setError("Project ID is missing.");
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const data =
+          await getProjectLabels(projectId);
+
+        setLabels(data);
+      } catch (error) {
+        if (error instanceof Error) {
+          setError(error.message);
+        } else {
+          setError(
+            "Unable to load labels.",
+          );
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     void loadLabels();
   }, [projectId]);
 

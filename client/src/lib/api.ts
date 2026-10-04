@@ -1,5 +1,23 @@
+const configuredApiBaseUrl =
+  import.meta.env.VITE_API_BASE_URL?.trim();
+
+const isLocalApiUrl = (value: string) =>
+  /^(https?:\/\/)?(localhost|127(?:\.\d{1,3}){3}|0\.0\.0\.0)(?::\d+)?(?:\/|$)/i.test(
+    value,
+  );
+
+if (
+  import.meta.env.PROD &&
+  (!configuredApiBaseUrl ||
+    isLocalApiUrl(configuredApiBaseUrl))
+) {
+  throw new Error(
+    "VITE_API_BASE_URL must be set to a production API URL or /api/v1.",
+  );
+}
+
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? "http://localhost:5000/api/v1";
+  configuredApiBaseUrl ?? "http://localhost:5000/api/v1";
 
 type ApiErrorResponse = {
   success?: false;

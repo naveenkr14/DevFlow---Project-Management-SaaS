@@ -1,4 +1,5 @@
 import { prisma } from "../../lib/prisma.js";
+import { publicUserSelect } from "../users/user.dto.js";
 
 export const createSession = async (data: {
   userId: string;
@@ -16,7 +17,9 @@ export const findSessionByTokenHash = async (tokenHash: string) => {
       tokenHash,
     },
     include: {
-      user: true,
+      user: {
+        select: publicUserSelect,
+      },
     },
   });
 };

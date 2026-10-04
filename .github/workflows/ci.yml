@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      # Used only for schema validation, client generation, and tests that do
+      # not open a database connection. No database credentials are required.
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/devflow?schema=public
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            client/package-lock.json
+            server/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: client
+        run: npm ci
+
+      - name: Install backend dependencies
+        working-directory: server
+        run: npm ci
+
+      - name: Validate Prisma schema
+        working-directory: server
+        run: npx prisma validate
+
+      - name: Generate Prisma Client
+        working-directory: server
+        run: npx prisma generate
+
+      - name: Run backend security tests
+        working-directory: server
+        run: npm test
+
+      - name: Build backend
+        working-directory: server
+        run: npm run build
+
+      - name: Lint frontend
+        working-directory: client
+        run: npm run lint
+
+      - name: Build frontend
+        working-directory: client
+        env:
+          VITE_API_BASE_URL: /api/v1
+        run: npm run build

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-import { useWorkspace } from "../workspaces/workspace.context";
+import { useWorkspace } from "../workspaces/workspace.hook";
 import { getWorkspaceProjects } from "../projects/project.api";
 
 import type {
