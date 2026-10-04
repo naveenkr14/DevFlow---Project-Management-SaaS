@@ -1,8 +1,8 @@
 {
-  "dependencies": {
-    "cookie-parser": "^1.4.7"
-  },
-  "devDependencies": {
-    "@types/cookie-parser": "^1.4.10"
+  "name": "devflow",
+  "private": true,
+  "scripts": {
+    "build": "npm ci --prefix client && npm ci --prefix server && npm run build --prefix client && npm run build --prefix server",
+    "start": "npm start --prefix server"
   }
 }
