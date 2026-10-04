@@ -46,7 +46,7 @@ Set the frontend API URL in `client/.env`:
 VITE_API_BASE_URL=http://localhost:5000/api/v1
 ```
 
-When `vite` builds for production, `VITE_API_BASE_URL` is required and localhost URLs are rejected. Use `/api/v1` for the recommended same-origin reverse-proxy deployment.
+When `vite` builds for production, `VITE_API_BASE_URL` is required and localhost URLs are rejected. Use `/api/v1` for the recommended same-origin deployment.
 
 Run the services in separate terminals:
 
@@ -105,16 +105,20 @@ The frontend production output is `client/dist`. The backend TypeScript output i
 
 ## Deployment prerequisites
 
-The recommended deployment shape is one HTTPS site with the frontend and API on the same site, with a reverse proxy routing `/api/*` to the backend. In that model:
+The recommended Railway deployment shape is one HTTPS web service plus Railway PostgreSQL. The web service is built from the repository root, builds both packages, starts the Express server, and serves `client/dist` for browser routes while keeping the API under `/api/v1`. No separate frontend service or application reverse-proxy configuration is required for this shape. In that model:
 
+- Set the Railway service root directory to `/` (the repository root).
+- Set the build command to `npm ci --prefix client && npm ci --prefix server && npm run build --prefix client && npm run build --prefix server`.
+- Set the start command to `npm start --prefix server`.
 - Set `VITE_API_BASE_URL=/api/v1` at frontend build time.
 - Set `NODE_ENV=production`.
 - Set `FRONTEND_URL` to the exact public frontend origin.
 - Set `DATABASE_URL` to the managed PostgreSQL connection URL.
 - Set `PORT` to the platform-provided port.
 - Set `TRUST_PROXY_HOPS` to the exact number of trusted reverse proxies, such as `1` for one controlled proxy. Leave it at `0` when the API is directly exposed.
-- Run `npm run db:migrate:deploy` from `server` before starting the new application version.
-- Serve `client/dist` with SPA fallback to `index.html` for client-side routes.
+- Configure the Railway health check path as `/api/v1/health`.
+- Run `npm run db:migrate:deploy --prefix server` as the intentional production migration command before starting the new application version.
+- The Express server serves `client/dist` with SPA fallback to `index.html` for client-side routes; `/api/v1/*` remains JSON API-only.
 - Terminate TLS at the platform or reverse proxy and enable HSTS there.
 
 The current cookie is HTTP-only, `SameSite=Lax`, and `Secure` in production. A same-site sibling-subdomain deployment such as `app.example.com` plus `api.example.com` can also work with an exact `FRONTEND_URL`, HTTPS, credentials-enabled CORS, and the existing cookie policy. A truly cross-site frontend/API deployment would require `SameSite=None; Secure` and CSRF protection; that architecture is not enabled by this repository yet.
@@ -132,12 +136,12 @@ Add CSRF protection before changing the deployment to a truly cross-site fronten
 ### Deployment sequence
 
 1. Provision managed PostgreSQL and store its connection string in the deployment secret manager.
-2. Configure backend `DATABASE_URL`, `NODE_ENV=production`, `FRONTEND_URL`, `PORT`, and `TRUST_PROXY_HOPS`.
-3. Build the frontend with `VITE_API_BASE_URL=/api/v1`.
-4. Build the backend with `npm run build`.
-5. Run `npm run db:migrate:deploy` from `server` against the intended database.
-6. Start the backend with `npm start` and serve `client/dist` behind HTTPS.
-7. Route `/api` to the backend, route `/` to the frontend, and verify SPA fallback, health endpoints, cookies, and logs.
+2. Create one Railway web service from the repository with root directory `/`.
+3. Configure backend `DATABASE_URL` as a Railway reference variable to the PostgreSQL service's `DATABASE_URL`.
+4. Configure `NODE_ENV=production`, `FRONTEND_URL`, `TRUST_PROXY_HOPS`, and the authentication rate-limit variables; Railway supplies `PORT`.
+5. Build with `VITE_API_BASE_URL=/api/v1` using the documented root build command.
+6. Run `npm run db:migrate:deploy --prefix server` against the intended Railway database.
+7. Start with `npm start --prefix server` and verify `/api/v1/health`, SPA fallback, cookies, and logs over HTTPS.
 
 There is currently no application Dockerfile or application deployment workflow in this repository. `docker-compose.yml` is for local PostgreSQL only.
 
